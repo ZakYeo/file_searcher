@@ -22,38 +22,35 @@ def search_files(directory, query, file_extension="", threshold=80):
                 matches.append(os.path.join(root, filename))
     return matches
 
-def copy_file(source_path, destination_path):
-    """Copy a file to a destination."""
+def copy_file_avoiding_overwrite(source_path, destination_path):
+    base, extension = os.path.splitext(destination_path)
+    counter = 1
+    while os.path.exists(destination_path):
+        destination_path = f"{base}_{counter}{extension}"
+        counter += 1
     try:
         shutil.copy2(source_path, destination_path)
         return True
     except Exception as e:
         logging.error(f"Error copying file: {e}")
         return False
-
+    
 def search_file_contents(directory, query, threshold=80):
-    """Search for .dat files based on a fuzzy match to their machine name contents."""
     matches = []
     for root, dirs, files in os.walk(directory):
         for filename in files:
-            # Only consider .dat files
             if not filename.lower().endswith(".dat"):
                 continue
-
             filepath = os.path.join(root, filename)
-            try:
-                tree = ET.parse(filepath)
-                root_element = tree.getroot()
-
-                for machine in root_element.findall('machine'):
-                    machine_name = machine.get('name', '')
-                    ratio = fuzz.partial_ratio(query.lower(), machine_name.lower())
-                    if ratio > threshold:
-                        matches.append(filepath)
-                        break  # If one match is found in the file, no need to continue searching in it
-
-            except Exception as e:
-                logging.error(f"Error reading or parsing file {filepath}: {e}")
+            with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+                for line_no, line in enumerate(f, 1):
+                    if '<machine name="' in line:
+                        machine_name = line.split('<machine name="')[1].split('"')[0]
+                        ratio = fuzz.partial_ratio(query.lower(), machine_name.lower())
+                        if ratio > threshold:
+                            matches.append(filepath)
+                            logging.info(f"Match found in {filepath} on line {line_no}: {line.strip()}")
+                            break
     return matches
 
 def main():
@@ -97,7 +94,7 @@ def main():
     for file in matched_files:
         logging.info(f"Found file: {file}")
         dest_path = os.path.join(copy_dir, os.path.basename(file))
-        if copy_file(file, dest_path):
+        if copy_file_avoiding_overwrite(file, dest_path):
             logging.info(f"Copied file to: {dest_path}")
         else:
             logging.error(f"Failed to copy: {file}")
