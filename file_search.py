@@ -18,6 +18,18 @@ def search_files(directory, query, threshold=80):
                 matches.append(os.path.join(root, filename))
     
     return matches
+import shutil
+
+def copy_file(source_path, destination_path):
+    """
+    Copies a file from source_path to destination_path.
+    """
+    try:
+        shutil.copy2(source_path, destination_path)
+        return True
+    except Exception as e:
+        print(f"Error copying file: {e}")
+        return False
 
 # Example
 directory_path = r''
