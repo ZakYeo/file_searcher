@@ -36,12 +36,22 @@ def main():
     copy_dir = input("Enter the directory to copy files to: ")
     file_extension = input("Enter a file extension (e.g. '.txt') or leave blank for all extensions: ")
 
+    # Allow user to specify the threshold
+    try:
+        threshold = int(input("Enter a threshold (0-100, default is 80, lower is more lenient): "))
+        if threshold < 0 or threshold > 100:
+            logging.warning("Invalid threshold value. Using the default of 80.")
+            threshold = 80
+    except ValueError:
+        logging.warning("Invalid threshold input. Using the default of 80.")
+        threshold = 80
+    
     # Ensure the copy directory exists
     if not os.path.exists(copy_dir):
         os.makedirs(copy_dir)
 
     # Search for files
-    matched_files = search_files(search_dir, query, file_extension)
+    matched_files = search_files(search_dir, query, file_extension, threshold)
     if not matched_files:
         logging.info("No files matched the search query.")
         return
