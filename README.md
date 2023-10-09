@@ -9,15 +9,17 @@ This utility allows users to perform a fuzzy search for files within a specified
 3. Specify the directory where you want to search for files.
 4. Provide the directory where the matched files should be copied to.
 5. Optionally, specify a file extension to filter the search (e.g. `.txt`). Leave it blank if you wish to consider all file extensions.
+6. Specify a threshold value (0-100). Default is 80. A lower threshold means a more lenient search, while a higher threshold makes the search stricter.
 
 Example:
 
-`shell
+```shell
 Enter your search query: Age of Empires
 Enter the directory to search in: /path/to/search/directory
 Enter the directory to copy files to: /path/to/destination/directory
 Enter a file extension (e.g. '.txt') or leave blank for all extensions:
-`
+Enter a threshold (0-100, default is 80, lower is more lenient): 75
+```
 
 ## Dependencies
 
