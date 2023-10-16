@@ -42,6 +42,7 @@ def search_file_contents(directory, query, threshold=80):
             if not filename.lower().endswith(".dat"):
                 continue
             filepath = os.path.join(root, filename)
+            logging.info(f"Processing file: {filepath}")
             try:
                 tree = ET.parse(filepath)
                 # Search for 'machine' elements and get the 'name' attribute
