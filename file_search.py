@@ -56,20 +56,47 @@ def search_file_contents(directory, query, threshold=80):
                 logging.warning(f"Failed to parse XML in {filepath}. Skipping.")
     return matches
 
+def read_file_lines_to_list(filename):
+    """Read the contents of a file and return each line as a list."""
+    with open(filename, 'r', encoding='utf-8') as file:
+        lines = [line.strip() for line in file.readlines()]
+    return lines
+
+def extract_machine_names_from_dat(filename):
+    """Extract the name attributes from machine elements in a .dat file."""
+    machine_names = []
+    
+    try:
+        tree = ET.parse(filename)
+        
+        # Search for 'machine' elements and get the 'name' attribute
+        for machine in tree.findall(".//machine"):
+            name = machine.get("name")
+            if name:  # Only add to the list if the name attribute exists
+                machine_names.append(name)
+
+    except ET.ParseError:
+        logging.warning(f"Failed to parse XML in {filename}. Skipping.")
+        
+    return machine_names
+
 def main():
     search_type = input("Choose search type: \n1. By file name \n2. By .dat file contents\nEnter choice (1 or 2): ")
     if search_type not in ['1', '2']:
         logging.error("Invalid choice. Exiting.")
         return
 
-    query = input("Enter your search query: ")
+    search_file = input("Enter your search file path: ")
     search_dir = input("Enter the directory to search in: ")
     copy_dir = input("Enter the directory to copy files to: ")
 
     if search_type == '1':
         file_extension = input("Enter a file extension (e.g. '.txt') or leave blank for all extensions: ")
+        search_queries = read_file_lines_to_list(search_file)
     else:  # If option 2, the file extension is implicitly .dat
         file_extension = '.dat'
+        search_queries = extract_machine_names_from_dat(search_file)
+    
     # Allow user to specify the threshold
     try:
         threshold = int(input("Enter a threshold (0-100, default is 80, lower is more lenient): "))
@@ -80,27 +107,28 @@ def main():
         logging.warning("Invalid threshold input. Using the default of 80.")
         threshold = 80
 
-    if search_type == '1':
-        matched_files = search_files(search_dir, query, file_extension, threshold)
-    else:  # For .dat files and their XML content
-        matched_files = search_file_contents(search_dir, query, threshold)
-    
     # Ensure the copy directory exists
     if not os.path.exists(copy_dir):
         os.makedirs(copy_dir)
 
-    if not matched_files:
-        logging.info("No files matched the search query.")
-        return
+    for query in search_queries:
+        if search_type == '1':
+            matched_files = search_files(search_dir, query, file_extension, threshold)
+        else:  # For .dat files and their XML content
+            matched_files = search_file_contents(search_dir, query, threshold)
+        
+        if not matched_files:
+            logging.info(f"No files matched the search query: {query}")
+            continue
 
-    # Copy files to the destination
-    for file in matched_files:
-        logging.info(f"Found file: {file}")
-        dest_path = os.path.join(copy_dir, os.path.basename(file))
-        if copy_file_avoiding_overwrite(file, dest_path):
-            logging.info(f"Copied file to: {dest_path}")
-        else:
-            logging.error(f"Failed to copy: {file}")
+        # Copy files to the destination
+        for file in matched_files:
+            logging.info(f"Found file: {file} for query: {query}")
+            dest_path = os.path.join(copy_dir, os.path.basename(file))
+            if copy_file_avoiding_overwrite(file, dest_path):
+                logging.info(f"Copied file to: {dest_path}")
+            else:
+                logging.error(f"Failed to copy: {file}")
 
     logging.info("File copying process completed.")
 
