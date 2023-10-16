@@ -42,15 +42,18 @@ def search_file_contents(directory, query, threshold=80):
             if not filename.lower().endswith(".dat"):
                 continue
             filepath = os.path.join(root, filename)
-            with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
-                for line_no, line in enumerate(f, 1):
-                    if '<machine name="' in line:
-                        machine_name = line.split('<machine name="')[1].split('"')[0]
-                        ratio = fuzz.partial_ratio(query.lower(), machine_name.lower())
-                        if ratio > threshold:
-                            matches.append(filepath)
-                            logging.info(f"Match found in {filepath} on line {line_no}: {line.strip()}")
-                            break
+            try:
+                tree = ET.parse(filepath)
+                # Search for 'machine' elements and get the 'name' attribute
+                for machine in tree.findall(".//machine"):
+                    machine_name = machine.get("name", "")
+                    ratio = fuzz.partial_ratio(query.lower(), machine_name.lower())
+                    if ratio > threshold:
+                        matches.append(filepath)
+                        logging.info(f"Match found in {filepath}: {machine_name}")
+                        break
+            except ET.ParseError:
+                logging.warning(f"Failed to parse XML in {filepath}. Skipping.")
     return matches
 
 def main():
