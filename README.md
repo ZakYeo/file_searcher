@@ -1,34 +1,47 @@
-# Fuzzy File Search and Copy Tool
+# README.md for `file_searcher`
 
-This Python script offers the ability to search for files in a specified directory and then copy them to another directory. The search is performed in two possible modes:
+## Introduction
 
-1. Fuzzy search by file name
-2. Fuzzy search by `.dat` file contents (specifically looking for machine name attributes in XML format).
+`file_searcher` is a simple tool for searching files based on either their names or content of `.dat` files that have XML-like structures. The tool also has a copying feature which ensures that it won't overwrite existing files in the destination directory by appending a counter to the file name if a conflict occurs.
 
-## Usage:
+## Dependencies
 
-1. Run the script.
-2. Choose your search type:
-   - `1. By file name`: Allows you to specify any file extension, or search across all extensions.
-   - `2. By .dat file contents`: Will only search within `.dat` files for matching XML content.
-3. Enter your search query.
-4. Specify the directory to search in.
-5. Specify the directory to which matching files should be copied.
-6. For search type 1, specify the desired file extension or leave blank to search all files.
-7. Input a threshold for the search. Default is 80 (out of 100), where a lower value is more lenient. This determines the matching accuracy.
+To use `file_searcher`, you'll need to install the following Python modules:
 
-## Notes:
+- `fuzzywuzzy`
 
-- The tool uses fuzzy matching, meaning it doesn't require an exact match to identify a file.
-- For the `.dat` file content search, the script looks for machine name attributes in XML tags that resemble: `<machine name="...">`.
+You can install them using `pip`:
 
-## Dependencies:
+`pip install fuzzywuzzy`
 
-- `fuzzywuzzy`: For performing the fuzzy string matching.
-  - Install with `pip install fuzzywuzzy`
-- `python-Levenshtein`: (Optional) Speeds up the processing considerably for `fuzzywuzzy`.
-  - Install with `pip install python-Levenshtein`
-- `xml.etree.ElementTree`: For XML parsing in .dat files.
-  - Should come pre-installed
+## Running Unit Tests
 
-Ensure you have the required modules installed via pip before using the script.
+To run the unit tests, navigate to the project's root directory and execute the test script:
+
+`python test_file_search.py`
+
+Ensure that both the main script and the test script are in the same directory before running tests.
+
+## Usage Instructions
+
+1. **Search Type Selection**: The tool provides two search options:
+   - Search by file name.
+   - Search by the content of `.dat` files.
+
+2. **Search File Path**: Input the path of your search file. This file should contain one search query per line. If you're searching by file name, these are string queries (e.g., "sample"). If you're searching by `.dat` file contents, this should be a `.dat` file with XML structures that contain machine elements with name attributes.
+
+3. **Search Directory**: This is the directory where the tool will search for matches.
+
+4. **Copy Directory**: After finding a match, the tool will copy the file to this directory. If the file already exists, the tool will append a counter to its name to avoid overwriting.
+
+5. **File Extension (Optional)**: If you're searching by file name, you have the option to specify a file extension to further narrow down your search. If left blank, all extensions will be considered.
+
+6. **Threshold**: This value (between 0-100) determines how lenient the fuzzy search should be. A lower value is more lenient, while a higher value is more strict. By default, the threshold is set to 80.
+
+To start the program, navigate to the project's root directory and run:
+
+```python file_searcher.py```
+
+Then, follow the on-screen prompts to execute your search.
+
+That's it! Feel free to explore the codebase and extend its functionalities as needed.
